@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,10 +9,10 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fetchTranscript } from '@/src/services/transcription';
+import { fetchTranscript } from "@/src/services/transcription";
 
 /**
  * HomeScreen
@@ -23,7 +23,7 @@ import { fetchTranscript } from '@/src/services/transcription';
  */
 export default function HomeScreen() {
   // Controlled input value (same idea as value + onChange on a web <input>).
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
   // True while the request is in flight: used to show a spinner and disable the button.
   const [loading, setLoading] = useState(false);
   // Readable error message to display, or null when there is none.
@@ -44,7 +44,7 @@ export default function HomeScreen() {
       const result = await fetchTranscript(trimmed);
       setTranscript(result.text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,8 @@ export default function HomeScreen() {
       {/* Pushes the content up when the keyboard opens (mostly relevant on iOS). */}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <View style={styles.container}>
           <Text style={styles.title}>Adicione aqui o link do YouTube</Text>
 
@@ -77,7 +78,8 @@ export default function HomeScreen() {
               (pressed || loading) && styles.buttonPressed,
             ]}
             onPress={handleSubmit}
-            disabled={loading}>
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -92,7 +94,8 @@ export default function HomeScreen() {
           {transcript !== null && (
             <ScrollView
               style={styles.transcriptBox}
-              contentContainerStyle={styles.transcriptContent}>
+              contentContainerStyle={styles.transcriptContent}
+            >
               <Text style={styles.transcriptText}>{transcript}</Text>
             </ScrollView>
           )}
@@ -106,7 +109,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   flex: {
     flex: 1,
@@ -118,43 +121,43 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#11181C',
+    fontWeight: "700",
+    color: "#11181C",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D0D7DE',
+    borderColor: "#D0D7DE",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#11181C',
+    color: "#11181C",
   },
   button: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: "#0a7ea4",
     borderRadius: 10,
     paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonPressed: {
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   error: {
-    color: '#D14343',
+    color: "#D14343",
     fontSize: 14,
   },
   transcriptBox: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#D0D7DE',
+    borderColor: "#D0D7DE",
     borderRadius: 10,
-    backgroundColor: '#F6F8FA',
+    backgroundColor: "#F6F8FA",
   },
   transcriptContent: {
     padding: 14,
@@ -162,6 +165,6 @@ const styles = StyleSheet.create({
   transcriptText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#11181C',
+    color: "#11181C",
   },
 });

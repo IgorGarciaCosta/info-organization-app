@@ -13,4 +13,4 @@
  *   2. Look for "IPv4 Address" (usually something like 192.168.x.x)
  *   3. Replace the value below with http://<that-ip>:8000
  */
-export const API_BASE_URL = 'http://192.168.0.10:8000';
+export const API_BASE_URL = 'http://localhost:8000';
