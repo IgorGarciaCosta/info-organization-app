@@ -90,14 +90,30 @@ export default function HomeScreen() {
           {/* Error message, only rendered when there is one. */}
           {error && <Text style={styles.error}>{error}</Text>}
 
-          {/* Scrollable transcript box, only rendered after a successful fetch. */}
+          {/* Transcript box + clear button, only rendered after a successful fetch. */}
           {transcript !== null && (
-            <ScrollView
-              style={styles.transcriptBox}
-              contentContainerStyle={styles.transcriptContent}
-            >
-              <Text style={styles.transcriptText}>{transcript}</Text>
-            </ScrollView>
+            <>
+              <ScrollView
+                style={styles.transcriptBox}
+                contentContainerStyle={styles.transcriptContent}
+              >
+                <Text style={styles.transcriptText}>{transcript}</Text>
+              </ScrollView>
+
+              {/* Clears the transcript state, which also hides this button. */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.clearButton,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={() => {
+                  setTranscript(null);
+                  setUrl("");
+                }}
+              >
+                <Text style={styles.clearButtonText}>Clean Textbox</Text>
+              </Pressable>
+            </>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -145,6 +161,19 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  clearButton: {
+    borderWidth: 1,
+    borderColor: "#0a7ea4",
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  clearButtonText: {
+    color: "#0a7ea4",
     fontSize: 16,
     fontWeight: "600",
   },
