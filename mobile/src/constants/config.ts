@@ -12,5 +12,13 @@
  *   1. Open PowerShell and run: ipconfig
  *   2. Look for "IPv4 Address" (usually something like 192.168.x.x)
  *   3. Replace the value below with http://<that-ip>:8000
+ *
+ * NOTE: When running in a web browser on the same computer as the backend,
+ * "localhost" is correct. On a physical phone (Expo Go) we must use the LAN IP.
  */
-export const API_BASE_URL = 'http://localhost:8000';
+import { Platform } from 'react-native';
+
+const LAN_IP = 'http://192.168.0.7:8000';
+
+export const API_BASE_URL =
+  Platform.OS === 'web' ? 'http://localhost:8000' : LAN_IP;

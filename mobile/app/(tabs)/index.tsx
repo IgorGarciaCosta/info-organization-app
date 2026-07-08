@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { summarizeTranscript } from "@/src/services/ai";
 import { fetchTranscript } from "@/src/services/transcription";
 
 /**
@@ -30,6 +31,10 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   // The fetched transcript text, or null before the first successful request.
   const [transcript, setTranscript] = useState<string | null>(null);
+  // True while the AI backend is turning the transcript into a summary.
+  const [summarizing, setSummarizing] = useState(false);
+  // The AI-generated summary, or null before it is ready.
+  const [summary, setSummary] = useState<string | null>(null);
 
   // Runs when the user taps Submit: calls the backend and updates screen state.
   async function handleSubmit() {
@@ -39,10 +44,24 @@ export default function HomeScreen() {
     setLoading(true);
     setError(null);
     setTranscript(null);
+    setSummary(null);
 
     try {
       const result = await fetchTranscript(trimmed);
       setTranscript(result.text);
+
+      // The transcript has arrived: immediately send it to the AI backend so it
+      // comes back summarized. This is a second network call, so it gets its
+      // own loading flag (`summarizing`).
+      setSummarizing(true);
+      try {
+        const aiSummary = await summarizeTranscript(result.text);
+        setSummary(aiSummary);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to summarize.");
+      } finally {
+        setSummarizing(false);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -93,6 +112,24 @@ export default function HomeScreen() {
           {/* Transcript box + clear button, only rendered after a successful fetch. */}
           {transcript !== null && (
             <>
+              {/* AI summary section: shows a spinner while the model is working,
+                  then the returned summary once it is ready. */}
+              {summarizing && (
+                <View style={styles.summarizingRow}>
+                  <ActivityIndicator color="#0a7ea4" />
+                  <Text style={styles.summarizingText}>
+                    Resumindo com IA...
+                  </Text>
+                </View>
+              )}
+
+              {summary !== null && (
+                <View style={styles.summaryBox}>
+                  <Text style={styles.summaryLabel}>Resumo (IA)</Text>
+                  <Text style={styles.summaryText}>{summary}</Text>
+                </View>
+              )}
+
               <ScrollView
                 style={styles.transcriptBox}
                 contentContainerStyle={styles.transcriptContent}
@@ -108,6 +145,7 @@ export default function HomeScreen() {
                 ]}
                 onPress={() => {
                   setTranscript(null);
+                  setSummary(null);
                   setUrl("");
                 }}
               >
@@ -180,6 +218,34 @@ const styles = StyleSheet.create({
   error: {
     color: "#D14343",
     fontSize: 14,
+  },
+  summarizingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  summarizingText: {
+    fontSize: 14,
+    color: "#0a7ea4",
+  },
+  summaryBox: {
+    borderWidth: 1,
+    borderColor: "#0a7ea4",
+    borderRadius: 10,
+    backgroundColor: "#EAF4F8",
+    padding: 14,
+    gap: 6,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0a7ea4",
+    textTransform: "uppercase",
+  },
+  summaryText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#11181C",
   },
   transcriptBox: {
     flex: 1,
