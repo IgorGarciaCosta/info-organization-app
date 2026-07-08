@@ -17,7 +17,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://REPLACE_WITH_YOUR_BACKEND_URL"
+        "EXPO_PUBLIC_API_URL": "https://transcript-api-r4jl.onrender.com"
       }
     },
     "production": {
@@ -25,7 +25,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://REPLACE_WITH_YOUR_BACKEND_URL"
+        "EXPO_PUBLIC_API_URL": "https://transcript-api-r4jl.onrender.com"
       }
     }
   },
