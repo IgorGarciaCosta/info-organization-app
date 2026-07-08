@@ -1,0 +1,19 @@
+# Render Blueprint for the FastAPI backend.
+#
+# This lets you deploy the backend with one click by connecting the GitHub repo
+# on https://render.com (New + > Blueprint). Render provides the $PORT variable;
+# the backend must bind to it (see startCommand).
+#
+# IMPORTANT: the GEMINI_API_KEY is marked `sync: false`, meaning Render will NOT
+# read it from this file. You must paste the real key in the Render dashboard
+# (Environment tab). The secret therefore never lives in the repository.
+services:
+  - type: web
+    name: transcript-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false

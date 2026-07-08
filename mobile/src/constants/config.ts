@@ -1,24 +1,46 @@
 /**
  * App configuration constants.
  *
- * API_BASE_URL points to the Python (FastAPI) backend that returns transcripts.
+ * API_BASE_URL points to the Python (FastAPI) backend that runs the Gemini
+ * summary (/summarize). The transcription itself runs on-device and does NOT
+ * need this URL.
  *
- * IMPORTANT — you are testing on a physical phone with Expo Go:
- * The phone is a DIFFERENT device from your computer. Using "localhost" here
- * would mean "the phone itself" and the request would fail. You must use your
- * computer's LAN IP address, and both devices must be on the same Wi-Fi.
+ * The value is resolved per environment so the SAME code works in development
+ * and in the installed production app:
  *
- * How to find your computer's IP (Windows):
- *   1. Open PowerShell and run: ipconfig
- *   2. Look for "IPv4 Address" (usually something like 192.168.x.x)
- *   3. Replace the value below with http://<that-ip>:8000
+ * - PRODUCTION (installed APK): the URL comes from the EXPO_PUBLIC_API_URL
+ *   environment variable, baked into the build (see .env.production / eas.json).
+ *   It must be a public HTTPS address of your hosted backend, because the user's
+ *   phone has no access to your computer.
  *
- * NOTE: When running in a web browser on the same computer as the backend,
- * "localhost" is correct. On a physical phone (Expo Go) we must use the LAN IP.
+ * - DEVELOPMENT (Expo Go / dev build): if EXPO_PUBLIC_API_URL is not set, we
+ *   fall back to http://localhost:8000. On a physical phone this works when the
+ *   device is connected by USB with `adb reverse tcp:8000 tcp:8000`, which maps
+ *   the phone's localhost back to your computer.
+ *
+ * Note: `__DEV__` is a React Native global that is `true` while developing and
+ * `false` in a production build.
  */
-import { Platform } from 'react-native';
 
-const LAN_IP = 'http://192.168.0.7:8000';
+// URL injected at build time via an EXPO_PUBLIC_* env var (Expo inlines these).
+const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
-export const API_BASE_URL =
-  Platform.OS === 'web' ? 'http://localhost:8000' : LAN_IP;
+// Local backend used during development when no env var is provided.
+const DEV_FALLBACK = 'http://localhost:8000';
+
+function resolveApiBaseUrl(): string {
+  // An explicit env var always wins (used by production builds).
+  if (envUrl) return envUrl;
+
+  // Without an env var, only development is supported (localhost).
+  if (__DEV__) return DEV_FALLBACK;
+
+  // Fail loudly: a production build without a configured backend URL is a bug
+  // we want to catch immediately instead of shipping a broken app.
+  throw new Error(
+    'EXPO_PUBLIC_API_URL is not set. Configure the production backend URL ' +
+      'in .env.production or in the eas.json build profile before building.',
+  );
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
