@@ -14,9 +14,8 @@
  *   phone has no access to your computer.
  *
  * - DEVELOPMENT (Expo Go / dev build): if EXPO_PUBLIC_API_URL is not set, we
- *   fall back to http://localhost:8000. On a physical phone this works when the
- *   device is connected by USB with `adb reverse tcp:8000 tcp:8000`, which maps
- *   the phone's localhost back to your computer.
+ *   use the hosted Render backend so tests work without a local Python server
+ *   or an ADB port reverse.
  *
  * Note: `__DEV__` is a React Native global that is `true` while developing and
  * `false` in a production build.
@@ -25,8 +24,8 @@
 // URL injected at build time via an EXPO_PUBLIC_* env var (Expo inlines these).
 const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
-// Local backend used during development when no env var is provided.
-const DEV_FALLBACK = 'http://localhost:8000';
+// Hosted backend used by Expo Go when no environment override is provided.
+const DEV_FALLBACK = 'https://transcript-api-r4jl.onrender.com';
 
 function resolveApiBaseUrl(): string {
   // An explicit env var always wins (used by production builds).
