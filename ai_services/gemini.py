@@ -28,7 +28,7 @@ SUMMARY_INSTRUCTION = (
 
 # Best free-tier model as of the current Gemini docs: the stable flagship Flash
 # model, which offers free input/output tokens for text tasks like this one.
-DEFAULT_GEMINI_MODEL = "gemini-3.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 
 
 class AIServiceGemini(AIService):
