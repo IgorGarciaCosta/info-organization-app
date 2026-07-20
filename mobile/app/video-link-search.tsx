@@ -12,20 +12,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppColors } from "@/constants/theme";
 import { summarizeTranscript } from "@/src/services/ai";
 import { fetchTranscript } from "@/src/services/transcription";
 
 /**
- * HomeScreen
- * Single entry screen of the app: the user pastes a YouTube link, taps Submit,
- * and the fetched transcript is shown in a scrollable box below. All network
- * state (loading / error / result) is handled locally with useState, exactly
- * like you would in a React web component.
+ * VideoLinkSearchPage
+ * Accepts a YouTube link and presents its transcript and AI-generated summary.
  */
-export default function HomeScreen() {
+export default function VideoLinkSearchPage() {
   // Controlled input value (same idea as value + onChange on a web <input>).
   const [url, setUrl] = useState("");
-  // True while the request is in flight: used to show a spinner and disable the button.
+  // True while the transcript request is in flight.
   const [loading, setLoading] = useState(false);
   // Readable error message to display, or null when there is none.
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +34,7 @@ export default function HomeScreen() {
   // The AI-generated summary, or null before it is ready.
   const [summary, setSummary] = useState<string | null>(null);
 
-  // Runs when the user taps Submit: calls the backend and updates screen state.
+  // Fetches the transcript and then asks the AI backend to summarize it.
   async function handleSubmit() {
     const trimmed = url.trim();
     if (!trimmed || loading) return;
@@ -50,9 +48,6 @@ export default function HomeScreen() {
       const result = await fetchTranscript(trimmed);
       setTranscript(result.text);
 
-      // The transcript has arrived: immediately send it to the AI backend so it
-      // comes back summarized. This is a second network call, so it gets its
-      // own loading flag (`summarizing`).
       setSummarizing(true);
       try {
         const aiSummary = await summarizeTranscript(result.text);
@@ -70,8 +65,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Pushes the content up when the keyboard opens (mostly relevant on iOS). */}
+    <SafeAreaView style={styles.safeArea} edges={["right", "bottom", "left"]}>
+      {/* KeyboardAvoidingView moves the form above the software keyboard on iOS. */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -82,7 +77,7 @@ export default function HomeScreen() {
           <TextInput
             style={styles.input}
             placeholder="https://www.youtube.com/watch?v=..."
-            placeholderTextColor="#9BA1A6"
+            placeholderTextColor={AppColors.textMuted}
             value={url}
             onChangeText={setUrl}
             autoCapitalize="none"
@@ -92,6 +87,7 @@ export default function HomeScreen() {
           />
 
           <Pressable
+            accessibilityRole="button"
             style={({ pressed }) => [
               styles.button,
               (pressed || loading) && styles.buttonPressed,
@@ -100,23 +96,19 @@ export default function HomeScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={AppColors.onAccent} />
             ) : (
               <Text style={styles.buttonText}>Submit</Text>
             )}
           </Pressable>
 
-          {/* Error message, only rendered when there is one. */}
           {error && <Text style={styles.error}>{error}</Text>}
 
-          {/* Transcript box + clear button, only rendered after a successful fetch. */}
           {transcript !== null && (
             <>
-              {/* AI summary section: shows a spinner while the model is working,
-                  then the returned summary once it is ready. */}
               {summarizing && (
                 <View style={styles.summarizingRow}>
-                  <ActivityIndicator color="#0a7ea4" />
+                  <ActivityIndicator color={AppColors.accent} />
                   <Text style={styles.summarizingText}>
                     Resumindo com IA...
                   </Text>
@@ -137,8 +129,8 @@ export default function HomeScreen() {
                 <Text style={styles.transcriptText}>{transcript}</Text>
               </ScrollView>
 
-              {/* Clears the transcript state, which also hides this button. */}
               <Pressable
+                accessibilityRole="button"
                 style={({ pressed }) => [
                   styles.clearButton,
                   pressed && styles.buttonPressed,
@@ -159,11 +151,11 @@ export default function HomeScreen() {
   );
 }
 
-// Centralized styles keep the component readable and the styles reusable.
+// Centralized styles keep the component readable and make the dark palette consistent.
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: AppColors.background,
   },
   flex: {
     flex: 1,
@@ -176,21 +168,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#11181C",
+    color: AppColors.text,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#D0D7DE",
-    borderRadius: 10,
+    borderColor: AppColors.border,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#11181C",
+    color: AppColors.text,
+    backgroundColor: AppColors.surface,
   },
   button: {
-    backgroundColor: "#0a7ea4",
-    borderRadius: 10,
-    paddingVertical: 14,
+    minHeight: 48,
+    backgroundColor: AppColors.accent,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -198,25 +191,25 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: "#fff",
+    color: AppColors.onAccent,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   clearButton: {
+    minHeight: 48,
     borderWidth: 1,
-    borderColor: "#0a7ea4",
-    borderRadius: 10,
-    paddingVertical: 14,
+    borderColor: AppColors.accent,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   clearButtonText: {
-    color: "#0a7ea4",
+    color: AppColors.accent,
     fontSize: 16,
     fontWeight: "600",
   },
   error: {
-    color: "#D14343",
+    color: AppColors.error,
     fontSize: 14,
   },
   summarizingRow: {
@@ -226,33 +219,33 @@ const styles = StyleSheet.create({
   },
   summarizingText: {
     fontSize: 14,
-    color: "#0a7ea4",
+    color: AppColors.accent,
   },
   summaryBox: {
     borderWidth: 1,
-    borderColor: "#0a7ea4",
-    borderRadius: 10,
-    backgroundColor: "#EAF4F8",
+    borderColor: AppColors.accent,
+    borderRadius: 12,
+    backgroundColor: AppColors.accentMuted,
     padding: 14,
     gap: 6,
   },
   summaryLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#0a7ea4",
+    color: AppColors.accent,
     textTransform: "uppercase",
   },
   summaryText: {
     fontSize: 15,
     lineHeight: 22,
-    color: "#11181C",
+    color: AppColors.text,
   },
   transcriptBox: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#D0D7DE",
-    borderRadius: 10,
-    backgroundColor: "#F6F8FA",
+    borderColor: AppColors.border,
+    borderRadius: 12,
+    backgroundColor: AppColors.surface,
   },
   transcriptContent: {
     padding: 14,
@@ -260,6 +253,6 @@ const styles = StyleSheet.create({
   transcriptText: {
     fontSize: 15,
     lineHeight: 22,
-    color: "#11181C",
+    color: AppColors.text,
   },
 });

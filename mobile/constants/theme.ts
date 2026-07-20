@@ -6,7 +6,24 @@
 import { Platform } from 'react-native';
 
 const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorDark = '#8EA8FF';
+
+/**
+ * AppColors
+ * Defines the permanent dark palette so every screen uses the same comfortable contrast.
+ */
+export const AppColors = {
+  background: '#0F1115',
+  surface: '#171A21',
+  surfaceElevated: '#1E232D',
+  border: '#2A303B',
+  text: '#E6EAF0',
+  textMuted: '#929AA8',
+  accent: tintColorDark,
+  accentMuted: '#1A2440',
+  error: '#FF818C',
+  onAccent: '#10131A',
+};
 
 export const Colors = {
   light: {
@@ -18,11 +35,11 @@ export const Colors = {
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: AppColors.text,
+    background: AppColors.background,
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: AppColors.textMuted,
+    tabIconDefault: AppColors.textMuted,
     tabIconSelected: tintColorDark,
   },
 };
