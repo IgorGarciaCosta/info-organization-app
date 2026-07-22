@@ -14,16 +14,15 @@ import os
 
 from google import genai
 
-from .base import AIService
+from .base import AIService, ContentAnalysis
 
-# Instruction prompt sent together with the transcription. For now it only asks
-# for a short summary (max 5 lines) in Portuguese. Changing the product's
-# behaviour later is as easy as editing this constant.
-SUMMARY_INSTRUCTION = (
-    "Você é um assistente que resume conteúdos. Resuma a transcrição abaixo em "
-    "português, em um texto curto de no máximo 5 linhas. Responda apenas com o "
-    "resumo, sem títulos nem comentários extras.\n\n"
-    "Transcrição:\n"
+# The prompt defines the analysis task while ContentAnalysis defines its format.
+ANALYSIS_INSTRUCTION = (
+    "Analise a transcrição em português. Crie um título e um subtítulo, "
+    "identifique o tema e o gênero, e extraia os principais tópicos. "
+    "Explique cada tópico objetivamente e classifique sua importância. "
+    "Ordene os tópicos do mais importante para o menos importante. "
+    "Não invente informações ausentes na transcrição.\n\nTranscrição:\n"
 )
 
 # Best free-tier model as of the current Gemini docs: the stable flagship Flash
@@ -52,14 +51,19 @@ class AIServiceGemini(AIService):
         self._client = genai.Client()
         self._model = model
 
-    def send_transcription_to_model(self, transcription: str) -> str:
-        """Prepend the instruction prompt to the text and return the summary."""
-        prompt = f"{SUMMARY_INSTRUCTION}{transcription}"
+    def send_transcription_to_model(self, transcription: str) -> ContentAnalysis:
+        """Ask Gemini for schema-constrained JSON and validate the response."""
+        prompt = f"{ANALYSIS_INSTRUCTION}{transcription}"
 
         interaction = self._client.interactions.create(
             model=self._model,
             input=prompt,
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": ContentAnalysis.model_json_schema(),
+            },
         )
 
-        # `output_text` is the SDK convenience property with the final answer.
-        return interaction.output_text.strip()
+        # Validate even schema-constrained model output before exposing it publicly.
+        return ContentAnalysis.model_validate_json(interaction.output_text)

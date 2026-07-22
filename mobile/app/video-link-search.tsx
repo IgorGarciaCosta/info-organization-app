@@ -13,12 +13,126 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppColors } from "@/constants/theme";
-import { summarizeTranscript } from "@/src/services/ai";
+import {
+  ContentAnalysis,
+  ContentGenre,
+  ContentTopic,
+  summarizeTranscript,
+  TopicImportance,
+} from "@/src/services/ai";
 import { fetchTranscript } from "@/src/services/transcription";
+
+const IMPORTANCE_LABELS: Record<TopicImportance, string> = {
+  high: "Alta",
+  medium: "Média",
+  low: "Baixa",
+};
+
+const IMPORTANCE_ORDER: TopicImportance[] = ["high", "medium", "low"];
+
+const GENRE_LABELS: Record<ContentGenre, string> = {
+  educational: "Educacional",
+  news: "Notícia",
+  opinion: "Opinião",
+  tutorial: "Tutorial",
+  interview: "Entrevista",
+  entertainment: "Entretenimento",
+  documentary: "Documentário",
+  other: "Outro",
+};
+
+const IMPORTANCE_COLORS: Record<TopicImportance, string> = {
+  high: "#FF818C",
+  medium: "#F5C76B",
+  low: "#72C7A5",
+};
+
+/**
+ * TopicCard
+ * Presents one AI-extracted topic with a visual importance indicator.
+ */
+function TopicCard({ topic }: { topic: ContentTopic }) {
+  const importanceColor = IMPORTANCE_COLORS[topic.importance];
+
+  return (
+    <View style={[styles.topicCard, { borderLeftColor: importanceColor }]}>
+      <View style={styles.topicHeader}>
+        <Text style={styles.topicTitle}>{topic.title}</Text>
+        <View style={[styles.importanceBadge, { backgroundColor: importanceColor }]}>
+          <Text style={styles.importanceText}>
+            {IMPORTANCE_LABELS[topic.importance]}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.topicContent}>{topic.content}</Text>
+    </View>
+  );
+}
+
+/**
+ * TopicGroup
+ * Groups related topic cards under one consistent importance level.
+ */
+function TopicGroup({
+  importance,
+  topics,
+}: {
+  importance: TopicImportance;
+  topics: ContentTopic[];
+}) {
+  const matchingTopics = topics.filter(
+    (topic) => topic.importance === importance,
+  );
+  if (matchingTopics.length === 0) return null;
+
+  return (
+    <View style={styles.topicGroup}>
+      <Text style={styles.topicGroupTitle}>
+        Importância {IMPORTANCE_LABELS[importance].toLowerCase()}
+      </Text>
+      {matchingTopics.map((topic) => (
+        <TopicCard key={topic.title} topic={topic} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * ContentAnalysisView
+ * Maps Gemini's structured fields to dedicated native UI sections.
+ */
+function ContentAnalysisView({ analysis }: { analysis: ContentAnalysis }) {
+  return (
+    <View style={styles.analysisBox}>
+      <Text style={styles.analysisTitle}>{analysis.title}</Text>
+      <Text style={styles.analysisSubtitle}>{analysis.subtitle}</Text>
+
+      <View style={styles.metadataRow}>
+        <View style={styles.metadataBadge}>
+          <Text style={styles.metadataLabel}>Tema</Text>
+          <Text style={styles.metadataValue}>{analysis.theme}</Text>
+        </View>
+        <View style={styles.metadataBadge}>
+          <Text style={styles.metadataLabel}>Gênero</Text>
+          <Text style={styles.metadataValue}>{GENRE_LABELS[analysis.genre]}</Text>
+        </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>Tópicos principais</Text>
+      {IMPORTANCE_ORDER.map((importance) => (
+        <TopicGroup
+          key={importance}
+          importance={importance}
+          topics={analysis.topics}
+        />
+      ))}
+    </View>
+  );
+}
 
 /**
  * VideoLinkSearchPage
- * Accepts a YouTube link and presents its transcript and AI-generated summary.
+ * Accepts a YouTube link and presents its transcript and structured AI analysis.
  */
 export default function VideoLinkSearchPage() {
   // Controlled input value (same idea as value + onChange on a web <input>).
@@ -31,8 +145,8 @@ export default function VideoLinkSearchPage() {
   const [transcript, setTranscript] = useState<string | null>(null);
   // True while the AI backend is turning the transcript into a summary.
   const [summarizing, setSummarizing] = useState(false);
-  // The AI-generated summary, or null before it is ready.
-  const [summary, setSummary] = useState<string | null>(null);
+  // Structured AI analysis, or null before it is ready.
+  const [analysis, setAnalysis] = useState<ContentAnalysis | null>(null);
 
   // Fetches the transcript and then asks the AI backend to summarize it.
   async function handleSubmit() {
@@ -42,7 +156,7 @@ export default function VideoLinkSearchPage() {
     setLoading(true);
     setError(null);
     setTranscript(null);
-    setSummary(null);
+    setAnalysis(null);
 
     try {
       const result = await fetchTranscript(trimmed);
@@ -50,8 +164,8 @@ export default function VideoLinkSearchPage() {
 
       setSummarizing(true);
       try {
-        const aiSummary = await summarizeTranscript(result.text);
-        setSummary(aiSummary);
+        const contentAnalysis = await summarizeTranscript(result.text);
+        setAnalysis(contentAnalysis);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to summarize.");
       } finally {
@@ -115,18 +229,16 @@ export default function VideoLinkSearchPage() {
                 </View>
               )}
 
-              {summary !== null && (
-                <View style={styles.summaryBox}>
-                  <Text style={styles.summaryLabel}>Resumo (IA)</Text>
-                  <Text style={styles.summaryText}>{summary}</Text>
-                </View>
-              )}
-
               <ScrollView
-                style={styles.transcriptBox}
-                contentContainerStyle={styles.transcriptContent}
+                style={styles.results}
+                contentContainerStyle={styles.resultsContent}
               >
-                <Text style={styles.transcriptText}>{transcript}</Text>
+                {analysis !== null && <ContentAnalysisView analysis={analysis} />}
+
+                <View style={styles.transcriptBox}>
+                  <Text style={styles.transcriptLabel}>Transcrição original</Text>
+                  <Text style={styles.transcriptText}>{transcript}</Text>
+                </View>
               </ScrollView>
 
               <Pressable
@@ -137,7 +249,7 @@ export default function VideoLinkSearchPage() {
                 ]}
                 onPress={() => {
                   setTranscript(null);
-                  setSummary(null);
+                  setAnalysis(null);
                   setUrl("");
                 }}
               >
@@ -221,34 +333,115 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: AppColors.accent,
   },
-  summaryBox: {
+  results: {
+    flex: 1,
+  },
+  resultsContent: {
+    gap: 16,
+    paddingBottom: 4,
+  },
+  analysisBox: {
     borderWidth: 1,
     borderColor: AppColors.accent,
     borderRadius: 12,
     backgroundColor: AppColors.accentMuted,
     padding: 14,
-    gap: 6,
+    gap: 12,
   },
-  summaryLabel: {
-    fontSize: 13,
+  analysisTitle: {
+    fontSize: 22,
     fontWeight: "700",
-    color: AppColors.accent,
-    textTransform: "uppercase",
-  },
-  summaryText: {
-    fontSize: 15,
-    lineHeight: 22,
     color: AppColors.text,
   },
-  transcriptBox: {
+  analysisSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: AppColors.textMuted,
+  },
+  metadataRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metadataBadge: {
+    flexGrow: 1,
+    borderRadius: 8,
+    backgroundColor: AppColors.surfaceElevated,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 2,
+  },
+  metadataLabel: {
+    color: AppColors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metadataValue: {
+    color: AppColors.text,
+    fontSize: 14,
+    textTransform: "capitalize",
+  },
+  sectionTitle: {
+    color: AppColors.accent,
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  topicGroup: {
+    gap: 8,
+  },
+  topicGroupTitle: {
+    color: AppColors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  topicCard: {
+    borderLeftWidth: 4,
+    borderRadius: 8,
+    backgroundColor: AppColors.surfaceElevated,
+    padding: 12,
+    gap: 8,
+  },
+  topicHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  topicTitle: {
     flex: 1,
+    color: AppColors.text,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  topicContent: {
+    color: AppColors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  importanceBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  importanceText: {
+    color: AppColors.onAccent,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  transcriptBox: {
     borderWidth: 1,
     borderColor: AppColors.border,
     borderRadius: 12,
     backgroundColor: AppColors.surface,
-  },
-  transcriptContent: {
     padding: 14,
+    gap: 8,
+  },
+  transcriptLabel: {
+    color: AppColors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   transcriptText: {
     fontSize: 15,

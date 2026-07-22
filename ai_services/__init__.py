@@ -8,7 +8,7 @@ only import from this package, so switching providers is a one-line change here.
 
 from __future__ import annotations
 
-from .base import AIService
+from .base import AIService, ContentAnalysis, Topic
 from .gemini import AIServiceGemini
 
 # Cached singleton so we build the Gemini client only once, lazily. Building it
@@ -25,4 +25,4 @@ def get_ai_service() -> AIService:
     return _service_singleton
 
 
-__all__ = ["AIService", "AIServiceGemini", "get_ai_service"]
+__all__ = ["AIService", "AIServiceGemini", "ContentAnalysis", "Topic", "get_ai_service"]
