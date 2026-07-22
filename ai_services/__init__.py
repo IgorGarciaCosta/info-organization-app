@@ -25,4 +25,5 @@ def get_ai_service() -> AIService:
     return _service_singleton
 
 
-__all__ = ["AIService", "AIServiceGemini", "ContentAnalysis", "Topic", "get_ai_service"]
+__all__ = ["AIService", "AIServiceGemini",
+           "ContentAnalysis", "Topic", "get_ai_service"]

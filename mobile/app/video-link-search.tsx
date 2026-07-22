@@ -58,7 +58,9 @@ function TopicCard({ topic }: { topic: ContentTopic }) {
     <View style={[styles.topicCard, { borderLeftColor: importanceColor }]}>
       <View style={styles.topicHeader}>
         <Text style={styles.topicTitle}>{topic.title}</Text>
-        <View style={[styles.importanceBadge, { backgroundColor: importanceColor }]}>
+        <View
+          style={[styles.importanceBadge, { backgroundColor: importanceColor }]}
+        >
           <Text style={styles.importanceText}>
             {IMPORTANCE_LABELS[topic.importance]}
           </Text>
@@ -114,7 +116,9 @@ function ContentAnalysisView({ analysis }: { analysis: ContentAnalysis }) {
         </View>
         <View style={styles.metadataBadge}>
           <Text style={styles.metadataLabel}>Gênero</Text>
-          <Text style={styles.metadataValue}>{GENRE_LABELS[analysis.genre]}</Text>
+          <Text style={styles.metadataValue}>
+            {GENRE_LABELS[analysis.genre]}
+          </Text>
         </View>
       </View>
 
@@ -233,10 +237,14 @@ export default function VideoLinkSearchPage() {
                 style={styles.results}
                 contentContainerStyle={styles.resultsContent}
               >
-                {analysis !== null && <ContentAnalysisView analysis={analysis} />}
+                {analysis !== null && (
+                  <ContentAnalysisView analysis={analysis} />
+                )}
 
                 <View style={styles.transcriptBox}>
-                  <Text style={styles.transcriptLabel}>Transcrição original</Text>
+                  <Text style={styles.transcriptLabel}>
+                    Transcrição original
+                  </Text>
                   <Text style={styles.transcriptText}>{transcript}</Text>
                 </View>
               </ScrollView>

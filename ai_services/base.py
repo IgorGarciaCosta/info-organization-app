@@ -19,7 +19,8 @@ class Topic(BaseModel):
     """A relevant point extracted from the transcript."""
 
     title: str = Field(description="Short title for the topic.")
-    content: str = Field(description="Objective explanation grounded in the transcript.")
+    content: str = Field(
+        description="Objective explanation grounded in the transcript.")
     importance: Literal["high", "medium", "low"] = Field(
         description="Relative importance of this topic in the source content."
     )
@@ -30,7 +31,8 @@ class ContentAnalysis(BaseModel):
 
     title: str = Field(description="Main title that represents the content.")
     subtitle: str = Field(description="One-sentence overview of the content.")
-    theme: str = Field(description="Main subject, such as technology or education.")
+    theme: str = Field(
+        description="Main subject, such as technology or education.")
     genre: Literal[
         "educational",
         "news",
