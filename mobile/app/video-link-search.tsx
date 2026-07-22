@@ -147,6 +147,8 @@ export default function VideoLinkSearchPage() {
   const [error, setError] = useState<string | null>(null);
   // The fetched transcript text, or null before the first successful request.
   const [transcript, setTranscript] = useState<string | null>(null);
+  // Keeps long transcript text collapsed until the user explicitly requests it.
+  const [isTranscriptVisible, setIsTranscriptVisible] = useState(false);
   // True while the AI backend is turning the transcript into a summary.
   const [summarizing, setSummarizing] = useState(false);
   // Structured AI analysis, or null before it is ready.
@@ -160,6 +162,7 @@ export default function VideoLinkSearchPage() {
     setLoading(true);
     setError(null);
     setTranscript(null);
+    setIsTranscriptVisible(false);
     setAnalysis(null);
 
     try {
@@ -241,28 +244,60 @@ export default function VideoLinkSearchPage() {
                   <ContentAnalysisView analysis={analysis} />
                 )}
 
-                <View style={styles.transcriptBox}>
-                  <Text style={styles.transcriptLabel}>
-                    Transcrição original
-                  </Text>
-                  <Text style={styles.transcriptText}>{transcript}</Text>
-                </View>
+                {isTranscriptVisible ? (
+                  <>
+                    <View style={styles.transcriptBox}>
+                      <Text style={styles.transcriptLabel}>
+                        Transcrição original
+                      </Text>
+                      <Text style={styles.transcriptText}>{transcript}</Text>
+                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      style={({ pressed }) => [
+                        styles.clearButton,
+                        pressed && styles.buttonPressed,
+                      ]}
+                      onPress={() => setIsTranscriptVisible(false)}
+                    >
+                      <Text style={styles.clearButtonText}>
+                        Minimize transcription
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Pressable
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.clearButton,
+                      pressed && styles.buttonPressed,
+                    ]}
+                    onPress={() => setIsTranscriptVisible(true)}
+                  >
+                    <Text style={styles.clearButtonText}>
+                      Read full transcription
+                    </Text>
+                  </Pressable>
+                )}
               </ScrollView>
 
-              <Pressable
-                accessibilityRole="button"
-                style={({ pressed }) => [
-                  styles.clearButton,
-                  pressed && styles.buttonPressed,
-                ]}
-                onPress={() => {
-                  setTranscript(null);
-                  setAnalysis(null);
-                  setUrl("");
-                }}
-              >
-                <Text style={styles.clearButtonText}>Clean Textbox</Text>
-              </Pressable>
+              {isTranscriptVisible && (
+                <Pressable
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.clearButton,
+                    pressed && styles.buttonPressed,
+                  ]}
+                  onPress={() => {
+                    setTranscript(null);
+                    setIsTranscriptVisible(false);
+                    setAnalysis(null);
+                    setUrl("");
+                  }}
+                >
+                  <Text style={styles.clearButtonText}>Clean Textbox</Text>
+                </Pressable>
+              )}
             </>
           )}
         </View>
