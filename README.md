@@ -31,9 +31,6 @@ YouTube commonly applies to datacenter IP addresses. Only the transcript text
 is sent to the API. The Gemini key remains on the backend and is never included
 in the app.
 
-The backend also provides `POST /transcript` as an alternative for clients that
-need to retrieve the transcript through the server.
-
 ## Technologies
 
 ### Mobile
@@ -48,7 +45,6 @@ need to retrieve the transcript through the server.
 - Python 3.10+;
 - FastAPI and Uvicorn;
 - `google-genai`;
-- `youtube-transcript-api`;
 - Pydantic.
 
 ## Project Structure
@@ -59,7 +55,6 @@ need to retrieve the transcript through the server.
 ├── mobile/               # Expo/React Native app
 ├── server.py             # endpoints FastAPI
 ├── test_ai_models.py     # AI response contract test
-├── test_transcript.py    # isolated transcript retrieval
 ├── render.yaml           # Render deployment configuration
 └── requirements.txt      # Python dependencies
 ```
@@ -139,11 +134,10 @@ npm run web
 
 ## API
 
-| Method | Route | Description |
-| --- | --- | --- |
-| `GET` | `/health` | Confirms that the API is available. |
-| `POST` | `/transcript` | Receives `{ "url": "..." }` and returns the transcript. |
-| `POST` | `/summarize` | Receives `{ "text": "..." }` and returns the structured analysis. |
+| Method | Route         | Description                                                       |
+| ------ | ------------- | ----------------------------------------------------------------- |
+| `GET`  | `/health`     | Confirms that the API is available.                               |
+| `POST` | `/summarize`  | Receives `{ "text": "..." }` and returns the structured analysis. |
 
 ## Tests and Quality
 
@@ -151,8 +145,6 @@ At the project root:
 
 ```powershell
 python -m unittest test_ai_models.py
-python test_transcript.py
-python test_transcript.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 In the `mobile` directory:

@@ -1,15 +1,13 @@
 """
-FastAPI backend that exposes the YouTube transcript logic over HTTP.
+FastAPI backend that exposes Gemini transcript analysis over HTTP.
 
-The mobile app cannot run Python, so it calls this small API instead. We reuse
-the functions already validated in test_transcript.py (extract_video_id and
-fetch_transcript) so there is a single source of truth for the logic.
+The mobile app retrieves captions on-device and sends only their text here,
+keeping the Gemini API key out of the installed application.
 
 Run it with:
     uvicorn server:app --host 0.0.0.0 --port 8000 --reload
 """
 
-from test_transcript import extract_video_id, fetch_transcript
 from ai_services import ContentAnalysis, get_ai_service
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -19,8 +17,6 @@ from pydantic import BaseModel
 # Load environment variables (like GEMINI_API_KEY) from a local .env file before
 # anything else needs them. This is what keeps the secret key out of the code.
 load_dotenv()
-
-# Reuse the exact logic that was already validated in the standalone script.
 
 app = FastAPI(title="Transcript API")
 
@@ -34,19 +30,6 @@ app.add_middleware(
 )
 
 
-class TranscriptRequest(BaseModel):
-    """Incoming payload: the raw YouTube URL or the 11-char video ID."""
-
-    url: str
-
-
-class TranscriptResponse(BaseModel):
-    """Outgoing payload: the resolved video id plus the full transcript text."""
-
-    video_id: str
-    text: str
-
-
 class SummarizeRequest(BaseModel):
     """Incoming payload: the transcript text to be processed by the AI model."""
 
@@ -57,28 +40,6 @@ class SummarizeRequest(BaseModel):
 def health():
     """Simple endpoint to confirm the server is reachable from the phone."""
     return {"status": "ok"}
-
-
-@app.post("/transcript", response_model=TranscriptResponse)
-def get_transcript(payload: TranscriptRequest):
-    """Resolve the video id, fetch its transcript and return it as plain text."""
-    # 1) Turn the URL/ID into a clean 11-character video id (or fail with 400).
-    try:
-        video_id = extract_video_id(payload.url.strip())
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
-
-    # 2) Fetch the transcript segments; surface any library error as a 502.
-    try:
-        segments = fetch_transcript(video_id)
-    except Exception as error:  # noqa: BLE001 - report any failure to the client
-        raise HTTPException(
-            status_code=502, detail=f"{type(error).__name__}: {error}"
-        )
-
-    # 3) Join the individual caption snippets into one readable block of text.
-    text = " ".join(segment["text"] for segment in segments)
-    return TranscriptResponse(video_id=video_id, text=text)
 
 
 @app.post("/summarize", response_model=ContentAnalysis)

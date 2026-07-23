@@ -1,5 +1,5 @@
 """
-Gemini implementation of the AIService interface.
+Gemini transcript analysis service.
 
 Architecture note (why this lives in the backend):
 The Gemini API requires a secret API key. If that key were shipped inside the
@@ -14,7 +14,7 @@ import os
 
 from google import genai
 
-from .base import AIService, ContentAnalysis
+from .base import ContentAnalysis
 
 # The prompt defines the analysis task while ContentAnalysis defines its format.
 ANALYSIS_INSTRUCTION = (
@@ -30,9 +30,9 @@ ANALYSIS_INSTRUCTION = (
 DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 
 
-class AIServiceGemini(AIService):
+class AIServiceGemini:
     """
-    Concrete AIService implementation backed by Google's Gemini API.
+    Transcript analysis service backed by Google's Gemini API.
 
     The API key is read from the GEMINI_API_KEY environment variable by the
     genai client, so no secret is hard-coded here.

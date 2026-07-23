@@ -7,30 +7,6 @@ import {
 } from 'youtube-transcript';
 
 /**
- * Shape of the successful transcript result consumed by the UI.
- * `videoId` is kept for compatibility, `text` is the full readable transcript.
- */
-export type TranscriptResult = {
-  videoId: string;
-  text: string;
-};
-
-/**
- * extractVideoId
- * Best-effort extraction of the 11-char YouTube video id from a URL or raw id.
- * Used only to label the result; the transcript library accepts the full URL.
- */
-function extractVideoId(urlOrId: string): string {
-  // Already a bare 11-character id (letters, digits, - and _).
-  if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
-
-  // Try the common URL shapes: youtu.be/<id> and ...?v=<id>.
-  const match =
-    urlOrId.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ?? null;
-  return match ? match[1] : '';
-}
-
-/**
  * fetchTranscript
  * Fetches a YouTube transcript DIRECTLY from the device (no backend). Running on
  * the phone means the request uses the phone's residential/mobile IP, which
@@ -42,7 +18,7 @@ function extractVideoId(urlOrId: string): string {
  * NOTE: On the web build this can fail due to the browser's CORS policy. It is
  * meant to run on the native app (Android/iOS), where CORS does not apply.
  */
-export async function fetchTranscript(url: string): Promise<TranscriptResult> {
+export async function fetchTranscript(url: string): Promise<string> {
   const trimmed = url.trim();
 
   try {
@@ -51,9 +27,7 @@ export async function fetchTranscript(url: string): Promise<TranscriptResult> {
     const segments = await fetchYoutubeTranscript(trimmed);
 
     // Join the individual caption snippets into one readable block of text.
-    const text = segments.map((segment) => segment.text).join(' ');
-
-    return { videoId: extractVideoId(trimmed), text };
+    return segments.map((segment) => segment.text).join(' ');
   } catch (error) {
     // Translate the library's typed errors into friendly English messages.
     if (error instanceof YoutubeTranscriptTooManyRequestError) {

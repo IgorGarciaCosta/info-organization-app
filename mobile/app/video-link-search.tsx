@@ -15,31 +15,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppColors } from "@/constants/theme";
 import {
   ContentAnalysis,
-  ContentGenre,
   ContentTopic,
+  IMPORTANCE_LEVELS,
   summarizeTranscript,
   TopicImportance,
 } from "@/src/services/ai";
 import { fetchTranscript } from "@/src/services/transcription";
-
-const IMPORTANCE_LABELS: Record<TopicImportance, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
-};
-
-const IMPORTANCE_ORDER: TopicImportance[] = ["high", "medium", "low"];
-
-const GENRE_LABELS: Record<ContentGenre, string> = {
-  educational: "Educational",
-  news: "News",
-  opinion: "Opinion",
-  tutorial: "Tutorial",
-  interview: "Interview",
-  entertainment: "Entertainment",
-  documentary: "Documentary",
-  other: "Other",
-};
 
 const IMPORTANCE_COLORS: Record<TopicImportance, string> = {
   high: "#FF818C",
@@ -61,9 +42,7 @@ function TopicCard({ topic }: { topic: ContentTopic }) {
         <View
           style={[styles.importanceBadge, { backgroundColor: importanceColor }]}
         >
-          <Text style={styles.importanceText}>
-            {IMPORTANCE_LABELS[topic.importance]}
-          </Text>
+          <Text style={styles.importanceText}>{topic.importance}</Text>
         </View>
       </View>
       <Text style={styles.topicContent}>{topic.content}</Text>
@@ -89,9 +68,7 @@ function TopicGroup({
 
   return (
     <View style={styles.topicGroup}>
-      <Text style={styles.topicGroupTitle}>
-        {IMPORTANCE_LABELS[importance]} importance
-      </Text>
+      <Text style={styles.topicGroupTitle}>{importance} importance</Text>
       {matchingTopics.map((topic) => (
         <TopicCard key={topic.title} topic={topic} />
       ))}
@@ -116,14 +93,12 @@ function ContentAnalysisView({ analysis }: { analysis: ContentAnalysis }) {
         </View>
         <View style={styles.metadataBadge}>
           <Text style={styles.metadataLabel}>Genre</Text>
-          <Text style={styles.metadataValue}>
-            {GENRE_LABELS[analysis.genre]}
-          </Text>
+          <Text style={styles.metadataValue}>{analysis.genre}</Text>
         </View>
       </View>
 
       <Text style={styles.sectionTitle}>Key Topics</Text>
-      {IMPORTANCE_ORDER.map((importance) => (
+      {IMPORTANCE_LEVELS.map((importance) => (
         <TopicGroup
           key={importance}
           importance={importance}
@@ -166,12 +141,12 @@ export default function VideoLinkSearchPage() {
     setAnalysis(null);
 
     try {
-      const result = await fetchTranscript(trimmed);
-      setTranscript(result.text);
+      const transcriptText = await fetchTranscript(trimmed);
+      setTranscript(transcriptText);
 
       setSummarizing(true);
       try {
-        const contentAnalysis = await summarizeTranscript(result.text);
+        const contentAnalysis = await summarizeTranscript(transcriptText);
         setAnalysis(contentAnalysis);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to summarize.");
@@ -243,41 +218,27 @@ export default function VideoLinkSearchPage() {
                 {analysis !== null && (
                   <ContentAnalysisView analysis={analysis} />
                 )}
-
-                {isTranscriptVisible ? (
-                  <>
-                    <View style={styles.transcriptBox}>
-                      <Text style={styles.transcriptLabel}>
-                        Original Transcript
-                      </Text>
-                      <Text style={styles.transcriptText}>{transcript}</Text>
-                    </View>
-                    <Pressable
-                      accessibilityRole="button"
-                      style={({ pressed }) => [
-                        styles.clearButton,
-                        pressed && styles.buttonPressed,
-                      ]}
-                      onPress={() => setIsTranscriptVisible(false)}
-                    >
-                      <Text style={styles.clearButtonText}>
-                        Hide transcript
-                      </Text>
-                    </Pressable>
-                  </>
-                ) : (
-                  <Pressable
-                    accessibilityRole="button"
-                    style={({ pressed }) => [
-                      styles.clearButton,
-                      pressed && styles.buttonPressed,
-                    ]}
-                    onPress={() => setIsTranscriptVisible(true)}
-                  >
-                    <Text style={styles.clearButtonText}>
-                      Read full transcript
+                <Pressable
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.clearButton,
+                    pressed && styles.buttonPressed,
+                  ]}
+                  onPress={() => setIsTranscriptVisible((visible) => !visible)}
+                >
+                  <Text style={styles.clearButtonText}>
+                    {isTranscriptVisible
+                      ? "Hide transcript"
+                      : "Read full transcript"}
+                  </Text>
+                </Pressable>
+                {isTranscriptVisible && (
+                  <View style={styles.transcriptBox}>
+                    <Text style={styles.transcriptLabel}>
+                      Original Transcript
                     </Text>
-                  </Pressable>
+                    <Text style={styles.transcriptText}>{transcript}</Text>
+                  </View>
                 )}
               </ScrollView>
 
@@ -471,6 +432,7 @@ const styles = StyleSheet.create({
     color: AppColors.onAccent,
     fontSize: 11,
     fontWeight: "800",
+    textTransform: "capitalize",
   },
   transcriptBox: {
     borderWidth: 1,

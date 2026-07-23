@@ -1,16 +1,19 @@
 import { API_BASE_URL } from '@/src/constants/config';
 
-export type TopicImportance = 'high' | 'medium' | 'low';
+export const IMPORTANCE_LEVELS = ['high', 'medium', 'low'] as const;
+const GENRES = [
+  'educational',
+  'news',
+  'opinion',
+  'tutorial',
+  'interview',
+  'entertainment',
+  'documentary',
+  'other',
+] as const;
 
-export type ContentGenre =
-  | 'educational'
-  | 'news'
-  | 'opinion'
-  | 'tutorial'
-  | 'interview'
-  | 'entertainment'
-  | 'documentary'
-  | 'other';
+export type TopicImportance = (typeof IMPORTANCE_LEVELS)[number];
+export type ContentGenre = (typeof GENRES)[number];
 
 export type ContentTopic = {
   title: string;
@@ -25,19 +28,6 @@ export type ContentAnalysis = {
   genre: ContentGenre;
   topics: ContentTopic[];
 };
-
-const GENRES: ContentGenre[] = [
-  'educational',
-  'news',
-  'opinion',
-  'tutorial',
-  'interview',
-  'entertainment',
-  'documentary',
-  'other',
-];
-
-const IMPORTANCE_LEVELS: TopicImportance[] = ['high', 'medium', 'low'];
 
 /**
  * isContentAnalysis
