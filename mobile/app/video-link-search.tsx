@@ -23,22 +23,22 @@ import {
 import { fetchTranscript } from "@/src/services/transcription";
 
 const IMPORTANCE_LABELS: Record<TopicImportance, string> = {
-  high: "Alta",
-  medium: "Média",
-  low: "Baixa",
+  high: "High",
+  medium: "Medium",
+  low: "Low",
 };
 
 const IMPORTANCE_ORDER: TopicImportance[] = ["high", "medium", "low"];
 
 const GENRE_LABELS: Record<ContentGenre, string> = {
-  educational: "Educacional",
-  news: "Notícia",
-  opinion: "Opinião",
+  educational: "Educational",
+  news: "News",
+  opinion: "Opinion",
   tutorial: "Tutorial",
-  interview: "Entrevista",
-  entertainment: "Entretenimento",
-  documentary: "Documentário",
-  other: "Outro",
+  interview: "Interview",
+  entertainment: "Entertainment",
+  documentary: "Documentary",
+  other: "Other",
 };
 
 const IMPORTANCE_COLORS: Record<TopicImportance, string> = {
@@ -90,7 +90,7 @@ function TopicGroup({
   return (
     <View style={styles.topicGroup}>
       <Text style={styles.topicGroupTitle}>
-        Importância {IMPORTANCE_LABELS[importance].toLowerCase()}
+        {IMPORTANCE_LABELS[importance]} importance
       </Text>
       {matchingTopics.map((topic) => (
         <TopicCard key={topic.title} topic={topic} />
@@ -111,18 +111,18 @@ function ContentAnalysisView({ analysis }: { analysis: ContentAnalysis }) {
 
       <View style={styles.metadataRow}>
         <View style={styles.metadataBadge}>
-          <Text style={styles.metadataLabel}>Tema</Text>
+          <Text style={styles.metadataLabel}>Theme</Text>
           <Text style={styles.metadataValue}>{analysis.theme}</Text>
         </View>
         <View style={styles.metadataBadge}>
-          <Text style={styles.metadataLabel}>Gênero</Text>
+          <Text style={styles.metadataLabel}>Genre</Text>
           <Text style={styles.metadataValue}>
             {GENRE_LABELS[analysis.genre]}
           </Text>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Tópicos principais</Text>
+      <Text style={styles.sectionTitle}>Key Topics</Text>
       {IMPORTANCE_ORDER.map((importance) => (
         <TopicGroup
           key={importance}
@@ -193,7 +193,7 @@ export default function VideoLinkSearchPage() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.container}>
-          <Text style={styles.title}>Adicione aqui o link do YouTube</Text>
+          <Text style={styles.title}>Add a YouTube link</Text>
 
           <TextInput
             style={styles.input}
@@ -231,7 +231,7 @@ export default function VideoLinkSearchPage() {
                 <View style={styles.summarizingRow}>
                   <ActivityIndicator color={AppColors.accent} />
                   <Text style={styles.summarizingText}>
-                    Resumindo com IA...
+                    Summarizing with AI...
                   </Text>
                 </View>
               )}
@@ -248,7 +248,7 @@ export default function VideoLinkSearchPage() {
                   <>
                     <View style={styles.transcriptBox}>
                       <Text style={styles.transcriptLabel}>
-                        Transcrição original
+                        Original Transcript
                       </Text>
                       <Text style={styles.transcriptText}>{transcript}</Text>
                     </View>
@@ -261,7 +261,7 @@ export default function VideoLinkSearchPage() {
                       onPress={() => setIsTranscriptVisible(false)}
                     >
                       <Text style={styles.clearButtonText}>
-                        Minimize transcription
+                        Hide transcript
                       </Text>
                     </Pressable>
                   </>
@@ -275,7 +275,7 @@ export default function VideoLinkSearchPage() {
                     onPress={() => setIsTranscriptVisible(true)}
                   >
                     <Text style={styles.clearButtonText}>
-                      Read full transcription
+                      Read full transcript
                     </Text>
                   </Pressable>
                 )}
@@ -295,7 +295,7 @@ export default function VideoLinkSearchPage() {
                     setUrl("");
                   }}
                 >
-                  <Text style={styles.clearButtonText}>Clean Textbox</Text>
+                  <Text style={styles.clearButtonText}>Clear</Text>
                 </Pressable>
               )}
             </>

@@ -18,11 +18,11 @@ from .base import AIService, ContentAnalysis
 
 # The prompt defines the analysis task while ContentAnalysis defines its format.
 ANALYSIS_INSTRUCTION = (
-    "Analise a transcrição em português. Crie um título e um subtítulo, "
-    "identifique o tema e o gênero, e extraia os principais tópicos. "
-    "Explique cada tópico objetivamente e classifique sua importância. "
-    "Ordene os tópicos do mais importante para o menos importante. "
-    "Não invente informações ausentes na transcrição.\n\nTranscrição:\n"
+    "Analyze the transcript and provide the entire analysis in English. Create a "
+    "title and subtitle, identify the theme and genre, and extract the key topics. "
+    "Explain each topic objectively and classify its importance. Order the topics "
+    "from most to least important. Do not invent information that is absent from "
+    "the transcript.\n\nTranscript:\n"
 )
 
 # Best free-tier model as of the current Gemini docs: the stable flagship Flash
@@ -43,8 +43,8 @@ class AIServiceGemini(AIService):
         # confusing error deep inside the SDK on the first request.
         if not os.environ.get("GEMINI_API_KEY"):
             raise RuntimeError(
-                "GEMINI_API_KEY não está definida. Crie um arquivo .env com "
-                "GEMINI_API_KEY=sua_chave (veja .env.example)."
+                "GEMINI_API_KEY is not set. Create a .env file with "
+                "GEMINI_API_KEY=your_key (see .env.example)."
             )
 
         # The client automatically picks up GEMINI_API_KEY from the environment.

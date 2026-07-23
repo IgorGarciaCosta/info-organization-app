@@ -2,14 +2,14 @@
 FastAPI backend that exposes the YouTube transcript logic over HTTP.
 
 The mobile app cannot run Python, so it calls this small API instead. We reuse
-the functions already validated in test_transcript.py (extrair_video_id and
-buscar_transcricao) so there is a single source of truth for the logic.
+the functions already validated in test_transcript.py (extract_video_id and
+fetch_transcript) so there is a single source of truth for the logic.
 
 Run it with:
     uvicorn server:app --host 0.0.0.0 --port 8000 --reload
 """
 
-from test_transcript import buscar_transcricao, extrair_video_id
+from test_transcript import extract_video_id, fetch_transcript
 from ai_services import ContentAnalysis, get_ai_service
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -64,13 +64,13 @@ def get_transcript(payload: TranscriptRequest):
     """Resolve the video id, fetch its transcript and return it as plain text."""
     # 1) Turn the URL/ID into a clean 11-character video id (or fail with 400).
     try:
-        video_id = extrair_video_id(payload.url.strip())
+        video_id = extract_video_id(payload.url.strip())
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
 
     # 2) Fetch the transcript segments; surface any library error as a 502.
     try:
-        segments = buscar_transcricao(video_id)
+        segments = fetch_transcript(video_id)
     except Exception as error:  # noqa: BLE001 - report any failure to the client
         raise HTTPException(
             status_code=502, detail=f"{type(error).__name__}: {error}"
@@ -87,7 +87,7 @@ def summarize(payload: SummarizeRequest):
     # 1) Reject empty input early with a clear 400 error.
     text = payload.text.strip()
     if not text:
-        raise HTTPException(status_code=400, detail="O texto está vazio.")
+        raise HTTPException(status_code=400, detail="Text is empty.")
 
     # 2) Delegate to the AI service; report any failure (missing key, model
     #    error, network issue) as a 502 with a readable message.

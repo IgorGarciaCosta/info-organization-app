@@ -12,13 +12,13 @@ class ContentAnalysisTest(unittest.TestCase):
         """Accept a complete structured response with a known importance level."""
         analysis = ContentAnalysis.model_validate_json(
             """{
-                "title": "Como organizar informações",
-                "subtitle": "Uma introdução prática.",
-                "theme": "Produtividade",
+                "title": "How to organize information",
+                "subtitle": "A practical introduction.",
+                "theme": "Productivity",
                 "genre": "educational",
                 "topics": [{
-                    "title": "Prioridades",
-                    "content": "Organize primeiro o que traz maior impacto.",
+                    "title": "Priorities",
+                    "content": "Organize what has the greatest impact first.",
                     "importance": "high"
                 }]
             }"""

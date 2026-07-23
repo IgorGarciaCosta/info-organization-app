@@ -36,7 +36,7 @@ function extractVideoId(urlOrId: string): string {
  * the phone means the request uses the phone's residential/mobile IP, which
  * YouTube blocks far less than the datacenter IPs a cloud server would use.
  *
- * Throws an Error with a readable (Portuguese) message on failure so the calling
+ * Throws an Error with a readable English message on failure so the calling
  * screen can show it to the user.
  *
  * NOTE: On the web build this can fail due to the browser's CORS policy. It is
@@ -55,27 +55,27 @@ export async function fetchTranscript(url: string): Promise<TranscriptResult> {
 
     return { videoId: extractVideoId(trimmed), text };
   } catch (error) {
-    // Translate the library's typed errors into friendly Portuguese messages.
+    // Translate the library's typed errors into friendly English messages.
     if (error instanceof YoutubeTranscriptTooManyRequestError) {
       throw new Error(
-        'O YouTube limitou as requisições. Tente novamente em alguns minutos.',
+        'YouTube rate-limited the requests. Try again in a few minutes.',
       );
     }
     if (error instanceof YoutubeTranscriptDisabledError) {
-      throw new Error('Este vídeo não tem legendas/transcrição disponível.');
+      throw new Error('This video has no captions or transcript available.');
     }
     if (error instanceof YoutubeTranscriptNotAvailableError) {
-      throw new Error('Não foi possível encontrar a transcrição deste vídeo.');
+      throw new Error('Could not find a transcript for this video.');
     }
     if (error instanceof YoutubeTranscriptVideoUnavailableError) {
-      throw new Error('Vídeo indisponível. Verifique o link.');
+      throw new Error('Video unavailable. Check the link.');
     }
 
     // Fallback: surface whatever message we have, or a generic one.
     throw new Error(
       error instanceof Error
         ? error.message
-        : 'Falha ao buscar a transcrição.',
+        : 'Failed to fetch the transcript.',
     );
   }
 }

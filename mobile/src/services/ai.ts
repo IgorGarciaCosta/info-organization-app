@@ -91,7 +91,7 @@ export async function summarizeTranscript(text: string): Promise<ContentAnalysis
   const data: unknown = await response.json();
   if (!isContentAnalysis(data)) {
     throw new Error(
-      'O backend ainda usa o formato antigo. Publique a versão atual no Render.',
+      'The backend still uses the old format. Deploy the current version to Render.',
     );
   }
 
