@@ -35,8 +35,8 @@ export function SavedAnalysisGrid({
 
 const styles = StyleSheet.create({
   content: {
-    gap: 12,
-    padding: 20,
+    gap: 28,
+    padding: 28,
     paddingBottom: 100,
   },
   row: {

@@ -138,10 +138,10 @@ npm run web
 
 ## API
 
-| Method | Route         | Description                                                       |
-| ------ | ------------- | ----------------------------------------------------------------- |
-| `GET`  | `/health`     | Confirms that the API is available.                               |
-| `POST` | `/summarize`  | Receives `{ "text": "..." }` and returns the structured analysis. |
+| Method | Route        | Description                                                       |
+| ------ | ------------ | ----------------------------------------------------------------- |
+| `GET`  | `/health`    | Confirms that the API is available.                               |
+| `POST` | `/summarize` | Receives `{ "text": "..." }` and returns the structured analysis. |
 
 ## Tests and Quality
 
