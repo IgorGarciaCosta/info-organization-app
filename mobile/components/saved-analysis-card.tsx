@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 import type { SavedAnalysisSummary } from "@/src/services/saved-analyses";
 
@@ -37,7 +38,6 @@ export function SavedAnalysisCard({
       style={({ pressed }) => [
         styles.card,
         {
-          backgroundColor: analysis.color,
           transform: [
             { rotate: `${analysis.rotation}deg` },
             { scale: pressed ? 0.97 : 1 },
@@ -46,12 +46,23 @@ export function SavedAnalysisCard({
         pressed && styles.pressed,
       ]}
     >
-      <View
-        style={[
-          styles.fold,
-          { borderLeftColor: darkenHexColor(analysis.color) },
-        ]}
-      />
+      <Svg
+        pointerEvents="none"
+        preserveAspectRatio="none"
+        style={StyleSheet.absoluteFill}
+        viewBox="0 0 100 100"
+      >
+        {/* The paper path omits the outer top-right triangle, making it truly transparent. */}
+        <Path
+          d="M5 0 H82 L100 18 V95 Q100 100 95 100 H5 Q0 100 0 95 V5 Q0 0 5 0 Z"
+          fill={analysis.color}
+        />
+        {/* The quadratic curve rounds the fold's inner corner by five units. */}
+        <Path
+          d="M82 0 V13 Q82 18 87 18 H100 Z"
+          fill={darkenHexColor(analysis.color)}
+        />
+      </Svg>
       <Text numberOfLines={4} style={styles.title}>
         {analysis.title}
       </Text>
@@ -65,8 +76,6 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 5,
-    overflow: "hidden",
     padding: 16,
     elevation: 4,
     shadowColor: "#000",
@@ -77,23 +86,14 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
   },
-  fold: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 0,
-    height: 0,
-    borderTopWidth: 28,
-    borderLeftWidth: 28,
-    borderTopColor: "rgba(0, 0, 0, 0.71)",
-    borderLeftColor: "transparent",
-    borderBottomLeftRadius: 5,
-  },
   title: {
+    width: "100%",
     color: "#252525",
     fontSize: 16,
     fontWeight: "700",
     lineHeight: 22,
     textAlign: "center",
+    paddingRight: 30,
+    paddingBottom: 30,
   },
 });

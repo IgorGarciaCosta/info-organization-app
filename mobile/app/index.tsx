@@ -70,6 +70,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <Text style={styles.message}>My Analysis</Text>
       {loading ? (
         <View style={styles.messageContainer}>
           <ActivityIndicator color={AppColors.accent} />
