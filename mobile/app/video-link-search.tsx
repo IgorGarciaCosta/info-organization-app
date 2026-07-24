@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AnalysisActionButton } from "@/components/analysis-action-button";
+import { AnalysisStatusLabel } from "@/components/analysis-status-label";
 import { AppColors } from "@/constants/theme";
 import {
   ContentAnalysis,
@@ -80,10 +82,31 @@ function TopicGroup({
  * ContentAnalysisView
  * Maps Gemini's structured fields to dedicated native UI sections.
  */
-function ContentAnalysisView({ analysis }: { analysis: ContentAnalysis }) {
+function ContentAnalysisView({
+  analysis,
+  onStatusChange,
+}: {
+  analysis: ContentAnalysis;
+  onStatusChange: (text: string) => void;
+}) {
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Updates only the local UI until analysis persistence is implemented.
+  function handleAnalysisAction() {
+    const nextIsSaved = !isSaved;
+    setIsSaved(nextIsSaved);
+    onStatusChange(nextIsSaved ? "Analysis saved" : "Analysis deleted");
+  }
+
   return (
     <View style={styles.analysisBox}>
-      <Text style={styles.analysisTitle}>{analysis.title}</Text>
+      <View style={styles.analysisHeader}>
+        <Text style={styles.analysisTitle}>{analysis.title}</Text>
+        <AnalysisActionButton
+          isSaved={isSaved}
+          onPress={handleAnalysisAction}
+        />
+      </View>
       <Text style={styles.analysisSubtitle}>{analysis.subtitle}</Text>
 
       <View style={styles.metadataRow}>
@@ -128,6 +151,8 @@ export default function VideoLinkSearchPage() {
   const [summarizing, setSummarizing] = useState(false);
   // Structured AI analysis, or null before it is ready.
   const [analysis, setAnalysis] = useState<ContentAnalysis | null>(null);
+  // Temporary feedback shown by the screen-level animated status label.
+  const [analysisStatus, analysisSaveStatus] = useState<string | null>(null);
 
   // Fetches the transcript and then asks the AI backend to summarize it.
   async function handleSubmit() {
@@ -139,6 +164,7 @@ export default function VideoLinkSearchPage() {
     setTranscript(null);
     setIsTranscriptVisible(false);
     setAnalysis(null);
+    analysisSaveStatus(null);
 
     try {
       const transcriptText = await fetchTranscript(trimmed);
@@ -216,7 +242,10 @@ export default function VideoLinkSearchPage() {
                 contentContainerStyle={styles.resultsContent}
               >
                 {analysis !== null && (
-                  <ContentAnalysisView analysis={analysis} />
+                  <ContentAnalysisView
+                    analysis={analysis}
+                    onStatusChange={analysisSaveStatus}
+                  />
                 )}
                 <Pressable
                   accessibilityRole="button"
@@ -253,6 +282,7 @@ export default function VideoLinkSearchPage() {
                     setTranscript(null);
                     setIsTranscriptVisible(false);
                     setAnalysis(null);
+                    analysisSaveStatus(null);
                     setUrl("");
                   }}
                 >
@@ -263,6 +293,7 @@ export default function VideoLinkSearchPage() {
           )}
         </View>
       </KeyboardAvoidingView>
+      <AnalysisStatusLabel text={analysisStatus} />
     </SafeAreaView>
   );
 }
@@ -352,7 +383,13 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 12,
   },
+  analysisHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
   analysisTitle: {
+    flex: 1,
     fontSize: 22,
     fontWeight: "700",
     color: AppColors.text,
