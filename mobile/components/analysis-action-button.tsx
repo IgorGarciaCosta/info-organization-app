@@ -4,6 +4,7 @@ import { Pressable, StyleSheet } from "react-native";
 import { AppColors } from "@/constants/theme";
 
 type AnalysisActionButtonProps = {
+  disabled?: boolean;
   isSaved: boolean;
   onPress: () => void;
 };
@@ -13,6 +14,7 @@ type AnalysisActionButtonProps = {
  * Exposes the current save/delete action with an accessible icon button.
  */
 export function AnalysisActionButton({
+  disabled = false,
   isSaved,
   onPress,
 }: AnalysisActionButtonProps) {
@@ -22,9 +24,13 @@ export function AnalysisActionButton({
     <Pressable
       accessibilityLabel={`${action} analysis`}
       accessibilityRole="button"
+      disabled={disabled}
       hitSlop={8}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.button,
+        (pressed || disabled) && styles.pressed,
+      ]}
     >
       <Ionicons
         name={isSaved ? "trash-outline" : "save-outline"}

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,6 +23,11 @@ import {
   summarizeTranscript,
   TopicImportance,
 } from "@/src/services/ai";
+import {
+  deleteSavedAnalysis,
+  getSavedAnalysis,
+  saveAnalysis,
+} from "@/src/services/saved-analyses";
 import { fetchTranscript } from "@/src/services/transcription";
 
 const IMPORTANCE_COLORS: Record<TopicImportance, string> = {
@@ -84,18 +90,39 @@ function TopicGroup({
  */
 function ContentAnalysisView({
   analysis,
+  isSaved,
+  onDelete,
+  onSave,
   onStatusChange,
 }: {
   analysis: ContentAnalysis;
+  isSaved: boolean;
+  onDelete: () => Promise<void>;
+  onSave: () => Promise<void>;
   onStatusChange: (text: string) => void;
 }) {
-  const [isSaved, setIsSaved] = useState(false);
+  const [actionPending, setActionPending] = useState(false);
 
-  // Updates only the local UI until analysis persistence is implemented.
-  function handleAnalysisAction() {
-    const nextIsSaved = !isSaved;
-    setIsSaved(nextIsSaved);
-    onStatusChange(nextIsSaved ? "Analysis saved" : "Analysis deleted");
+  // Persists or removes the analysis before reporting success to the user.
+  async function handleAnalysisAction() {
+    if (actionPending) return;
+
+    setActionPending(true);
+    try {
+      if (isSaved) {
+        await onDelete();
+        onStatusChange("Analysis deleted");
+      } else {
+        await onSave();
+        onStatusChange("Analysis saved");
+      }
+    } catch (cause) {
+      onStatusChange(
+        cause instanceof Error ? cause.message : "Analysis action failed",
+      );
+    } finally {
+      setActionPending(false);
+    }
   }
 
   return (
@@ -103,6 +130,7 @@ function ContentAnalysisView({
       <View style={styles.analysisHeader}>
         <Text style={styles.analysisTitle}>{analysis.title}</Text>
         <AnalysisActionButton
+          disabled={actionPending}
           isSaved={isSaved}
           onPress={handleAnalysisAction}
         />
@@ -137,6 +165,7 @@ function ContentAnalysisView({
  * Accepts a YouTube link and presents its transcript and structured AI analysis.
  */
 export default function VideoLinkSearchPage() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   // Controlled input value (same idea as value + onChange on a web <input>).
   const [url, setUrl] = useState("");
   // True while the transcript request is in flight.
@@ -151,8 +180,74 @@ export default function VideoLinkSearchPage() {
   const [summarizing, setSummarizing] = useState(false);
   // Structured AI analysis, or null before it is ready.
   const [analysis, setAnalysis] = useState<ContentAnalysis | null>(null);
+  // SQLite identifier when the displayed analysis is already persisted.
+  const [savedAnalysisId, setSavedAnalysisId] = useState<number | null>(null);
   // Temporary feedback shown by the screen-level animated status label.
   const [analysisStatus, analysisSaveStatus] = useState<string | null>(null);
+
+  // Restores a saved analysis when this screen is opened from the home grid.
+  useEffect(() => {
+    if (id === undefined) return;
+
+    const numericId = Number(id);
+    if (!Number.isInteger(numericId)) {
+      setError("Invalid saved analysis.");
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadSavedAnalysis() {
+      setLoading(true);
+      setError(null);
+      try {
+        const saved = await getSavedAnalysis(numericId);
+        if (!isActive) return;
+        if (saved === null) {
+          setError("Saved analysis not found.");
+          return;
+        }
+
+        setUrl(saved.videoUrl);
+        setTranscript(saved.transcript);
+        setAnalysis(saved.analysis);
+        setSavedAnalysisId(saved.id);
+      } catch (cause) {
+        if (isActive) {
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "Failed to load saved analysis.",
+          );
+        }
+      } finally {
+        if (isActive) setLoading(false);
+      }
+    }
+
+    void loadSavedAnalysis();
+    return () => {
+      isActive = false;
+    };
+  }, [id]);
+
+  // Stores all data required to recreate the current result later.
+  async function handleSaveAnalysis() {
+    if (analysis === null || transcript === null) return;
+    const insertedId = await saveAnalysis({
+      videoUrl: url,
+      transcript,
+      analysis,
+    });
+    setSavedAnalysisId(insertedId);
+  }
+
+  // Removes the current result from local persistence without closing it.
+  async function handleDeleteAnalysis() {
+    if (savedAnalysisId === null) return;
+    await deleteSavedAnalysis(savedAnalysisId);
+    setSavedAnalysisId(null);
+  }
 
   // Fetches the transcript and then asks the AI backend to summarize it.
   async function handleSubmit() {
@@ -164,6 +259,7 @@ export default function VideoLinkSearchPage() {
     setTranscript(null);
     setIsTranscriptVisible(false);
     setAnalysis(null);
+    setSavedAnalysisId(null);
     analysisSaveStatus(null);
 
     try {
@@ -244,6 +340,9 @@ export default function VideoLinkSearchPage() {
                 {analysis !== null && (
                   <ContentAnalysisView
                     analysis={analysis}
+                    isSaved={savedAnalysisId !== null}
+                    onDelete={handleDeleteAnalysis}
+                    onSave={handleSaveAnalysis}
                     onStatusChange={analysisSaveStatus}
                   />
                 )}
@@ -282,6 +381,7 @@ export default function VideoLinkSearchPage() {
                     setTranscript(null);
                     setIsTranscriptVisible(false);
                     setAnalysis(null);
+                    setSavedAnalysisId(null);
                     analysisSaveStatus(null);
                     setUrl("");
                   }}
