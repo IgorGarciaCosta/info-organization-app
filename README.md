@@ -2,7 +2,8 @@
 
 Mobile app that receives a YouTube link, retrieves the video transcript, and
 uses Gemini to turn it into a structured analysis with a title, summary, theme,
-genre, and topics ranked by importance.
+genre, and topics ranked by importance. Analyses can be saved on the device and
+opened again from the home screen.
 
 ## Features
 
@@ -10,26 +11,25 @@ genre, and topics ranked by importance.
 - structured transcript analysis with Gemini;
 - topics organized by high, medium, and low importance;
 - optional full transcript display;
+- local save, reopen, and delete actions backed by SQLite;
 - Android/iOS app built with Expo and React Native;
 - FastAPI API ready to run locally or deploy to Render.
 
 ## Architecture
 
 ```text
-YouTube ── direct transcript retrieval on device ──> Expo App
-                             │
-                             │ POST /summarize
-                             ▼
-                           FastAPI API
-                             │
-                             ▼
-                          Gemini
+YouTube ── captions ──> Expo App ── saved analyses ──> SQLite
+                            │
+                            │ transcript via POST /summarize
+                            ▼
+                        FastAPI API ──> Gemini
 ```
 
 The app retrieves the transcript directly on the device to avoid the blocks
 YouTube commonly applies to datacenter IP addresses. Only the transcript text
 is sent to the API. The Gemini key remains on the backend and is never included
-in the app.
+in the app. Saved analyses, source URLs, and transcripts remain in the app's
+local SQLite database.
 
 ## Technologies
 
@@ -38,6 +38,7 @@ in the app.
 - Expo SDK 54 and Expo Router;
 - React 19 and React Native 0.81;
 - TypeScript;
+- Expo SQLite;
 - `youtube-transcript`.
 
 ### Backend
@@ -52,8 +53,11 @@ in the app.
 ```text
 .
 ├── ai_services/          # Gemini contract and integration
-├── mobile/               # Expo/React Native app
-├── server.py             # endpoints FastAPI
+├── mobile/
+│   ├── app/              # Expo Router screens and navigation
+│   ├── components/       # reusable React Native UI
+│   └── src/services/     # transcript, API, and SQLite services
+├── server.py             # FastAPI endpoints
 ├── test_ai_models.py     # AI response contract test
 ├── render.yaml           # Render deployment configuration
 └── requirements.txt      # Python dependencies
@@ -62,7 +66,7 @@ in the app.
 ## Prerequisites
 
 - Python 3.10 or later;
-- Node.js 20 or later and npm;
+- Node.js 20.19 or later and npm;
 - a Gemini API key created in
   [Google AI Studio](https://aistudio.google.com/apikey);
 - Expo Go, an emulator, or an Android/iOS device.
@@ -102,7 +106,7 @@ In another terminal:
 
 ```powershell
 Set-Location mobile
-npm install
+npm ci
 Copy-Item .env.example .env
 npm start
 ```

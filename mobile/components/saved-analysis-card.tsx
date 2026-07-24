@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderWidth: 1,
     borderColor: AppColors.border,
-    borderRadius: 14,
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: AppColors.surface,

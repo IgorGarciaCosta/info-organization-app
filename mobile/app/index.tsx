@@ -83,10 +83,7 @@ export default function HomeScreen() {
           <Text style={styles.message}>Nothing to see here</Text>
         </View>
       ) : (
-        <SavedAnalysisGrid
-          analyses={analyses}
-          onAnalysisPress={openAnalysis}
-        />
+        <SavedAnalysisGrid analyses={analyses} onAnalysisPress={openAnalysis} />
       )}
 
       <Pressable
