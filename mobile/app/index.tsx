@@ -70,7 +70,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.message}>My Analysis</Text>
+      <Text style={styles.heading}>My Analysis</Text>
       {loading ? (
         <View style={styles.messageContainer}>
           <ActivityIndicator color={AppColors.accent} />
@@ -118,6 +118,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  heading: {
+    color: AppColors.text,
+    fontSize: 26,
+    fontWeight: "700",
+    paddingTop: 30,
+    paddingLeft: 30,
   },
   message: {
     color: AppColors.textMuted,
